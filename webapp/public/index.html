@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="main.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+</head>
+<body>
+
+Microservices på Google Cloud Engine
+
+<div id="liste"></div>
+<div style="display:inline-block;margin-left:auto" id="nyListe">Handlevogn:</div>
+<button onclick = sendInn()>Send inn</button>
+
+</div>
+</div>
+</body>
+</html>
+
+<script>
+	
+	function sendInn(){
+		$.post( "/shopping-service/send", function( data ) {
+			$( ".result" ).alert( data );
+		});
+	}
+	
+	function updateStatus(){
+		$.post( "/delivery-service/deliver", function( data ) {
+			$( ".result" ).alert( data );
+		});
+	}
+	
+	function updateVogn(data) {
+		let liste = "<ul>";
+            for (let i = 0; i < data.length; i++) {
+                let product = "<li> Vare nummer: "+data[i]+"</li>";
+                liste+=product;
+            }
+            liste+="</ul>";
+            document.querySelector("#nyListe").innerHTML = liste;
+	}
+	
+    function addToCart(product_id) {
+		$.ajax({
+		type: "POST",
+		async: false,
+		url: "/shopping-service",
+		data: JSON.stringify({ id: product_id }),
+		contentType: "application/json; charset=utf-8",
+		dataType: "json",
+		success: function (data){
+			updateVogn(data)
+		},
+		failure: function(errMsg) {
+			alert(errMsg);
+		}
+		});
+    }
+
+    fetch('product-service')
+        .then(res => res.json())
+        .then(json => {
+            let liste = "<ul>";
+            for (let i = 0; i < 5; i++) {
+                let product = "<li>"+json[i].name+": "+json[i].price+" <button onclick = addToCart("+json[i].id+")> Legg til i handlekurv </button></li>";
+                liste+=product;
+            }
+            liste+="</ul>";
+            document.querySelector("#liste").innerHTML = liste;
+
+        })
+        .catch(error => {
+            console.log("product-service returned error: " + error)
+            document.querySelector("#liste").innerHTML = "Error: " + error;
+        });
+</script>
